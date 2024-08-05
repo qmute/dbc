@@ -4,6 +4,18 @@ db connector
 
 ## Usage
 
+由于是私有库，需要配置GIT。
+
+```shell
+git config --global url.git@github.com:.insteadOf https://github.com/
+
+cat ~/.gitconfig
+
+[url "git@github.com:"]
+    insteadOf = https://github.com/
+
+```
+
 ## Getting Started
 
 - [cassandra/scyllaDB](#cassandra/scyllaDB)
