@@ -57,6 +57,31 @@ func (p StringArray) Value() (driver.Value, error) {
 	return delegate.Value()
 }
 
+// Float64Array 自定义类型以便支持 []float64
+// 底层功能代理给 pgtype.Float8Array
+type Float64Array []float64
+
+func (p *Float64Array) Scan(src any) error {
+	delegate := &pgtype.Float8Array{}
+	if err := delegate.Scan(src); err != nil {
+		return err
+	}
+	var dest []float64
+	if err := delegate.AssignTo(&dest); err != nil {
+		return err
+	}
+	*p = dest
+	return nil
+}
+
+func (p Float64Array) Value() (driver.Value, error) {
+	delegate := pgtype.Float8Array{}
+	if err := delegate.Set([]float64(p)); err != nil {
+		return nil, err
+	}
+	return delegate.Value()
+}
+
 // Copy 用于 model/domain 之间的转换。 可以避免 nil slice 作为 null 保存入库
 func Copy(to, from any, converter ...copier.TypeConverter) error {
 	opt := copyOption
@@ -90,6 +115,17 @@ var copyOption = copier.Option{
 					s = []string{} // 如果是nil，生成一个空的slice，这样数据库中永远就不会存null
 				}
 				return StringArray(s), nil
+			},
+		},
+		{
+			SrcType: []float64{},
+			DstType: Float64Array{},
+			Fn: func(src interface{}) (interface{}, error) {
+				s := src.([]float64)
+				if s == nil {
+					s = []float64{} // 如果是nil，生成一个空的slice，这样数据库中永远就不会存null
+				}
+				return Float64Array(s), nil
 			},
 		},
 	},
